@@ -77,9 +77,9 @@ function getHeuristicResponse(query, tasks, pending, done, overdue, dueSoon, hig
   };
 
   if (q.match(/\b(hi|hello|hey|greetings|good morning|good afternoon)\b/)) {
-    return `Hello! 👋 I am your local AI Task Assistant.
+    return `Hello! 👋 I am your  AI Task Assistant.
 
-I am running in **Offline Heuristic Mode** because no API key (Gemini or Anthropic) is configured. However, I can still analyze your tasks and answer queries like:
+ I can analyze your tasks and answer queries like:
 - "What tasks are pending?"
 - "Show me overdue tasks"
 - "What is my progress?"
@@ -154,7 +154,7 @@ Keep pushing forward to bring that completion rate closer to 100%! 🚀`;
 
 💡 **Next Recommendation:** ${nextStep}
 
-*(Note: Currently running in Local Heuristic Fallback. For full conversational AI, configure a \`GEMINI_API_KEY\` or \`ANTHROPIC_API_KEY\` in your server's .env file.)*`;
+
 }
 
 // GET /history — retrieve user's chat history with the agent
