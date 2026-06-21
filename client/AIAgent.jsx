@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { chatWithAgent } from "./services/tasks";
+import { chatWithAgent, getAgentHistory, clearAgentHistory } from "./services/tasks";
 import "./AIAgent.css";
 
 function SVGIcon({ d, size=16 }) {
@@ -41,11 +41,11 @@ function Message({ msg }) {
 }
 
 export default function AIAgent({ open, onClose }) {
-  const [messages,  setMessages]  = useState([
-    { role:"assistant", content:"Hi! I'm your AI task assistant. I can answer questions about your tasks, remind you of deadlines, and analyze your progress. What would you like to know?" }
-  ]);
+  const defaultWelcome = { role:"assistant", content:"Hi! I'm your AI task assistant. I can answer questions about your tasks, remind you of deadlines, and analyze your progress. What would you like to know?" };
+  const [messages,  setMessages]  = useState([defaultWelcome]);
   const [input,    setInput]    = useState("");
   const [loading,  setLoading]  = useState(false);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
   const bottomRef  = useRef(null);
   const inputRef   = useRef(null);
 
@@ -54,8 +54,24 @@ export default function AIAgent({ open, onClose }) {
   }, [messages]);
 
   useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 100);
-  }, [open]);
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+      
+      // Load user's agent history on open
+      if (!historyLoaded) {
+        setLoading(true);
+        getAgentHistory()
+          .then(data => {
+            if (data && data.length > 0) {
+              setMessages(data);
+            }
+            setHistoryLoaded(true);
+          })
+          .catch(err => console.error("Failed to load chat history:", err))
+          .finally(() => setLoading(false));
+      }
+    }
+  }, [open, historyLoaded]);
 
   const send = async (text) => {
     const q = (text || input).trim();
@@ -68,6 +84,7 @@ export default function AIAgent({ open, onClose }) {
     setLoading(true);
 
     try {
+      // Format current session messages for the model context
       const history = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
       const data    = await chatWithAgent(history);
       const reply   = data.reply || data.message || data.content || "Sorry, I couldn't process that.";
@@ -83,7 +100,18 @@ export default function AIAgent({ open, onClose }) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   };
 
-  const clearChat = () => setMessages([messages[0]]);
+  const clearChat = async () => {
+    if (!confirm("Clear your chat history?")) return;
+    try {
+      setLoading(true);
+      await clearAgentHistory();
+      setMessages([defaultWelcome]);
+    } catch (err) {
+      alert("Failed to clear chat: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!open) return null;
 

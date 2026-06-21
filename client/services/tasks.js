@@ -39,6 +39,8 @@ export const getStats = () => req("/tasks/stats/summary");
 // ————— AI Agent
 export const chatWithAgent = (messages) =>
   req("/agent/chat", { method: "POST", body: JSON.stringify({ messages }) });
+export const getAgentHistory = () => req("/agent/history");
+export const clearAgentHistory = () => req("/agent/history", { method: "DELETE" });
 
 // ————— Projects (stub — extend when you add a projects model)
 export const getProjects = () => Promise.resolve([]);

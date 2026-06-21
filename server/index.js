@@ -6,6 +6,7 @@ require("dotenv").config();
 
 const taskRoutes = require("./routes/taskRoutes");
 const authRoutes = require("./routes/authRoutes");
+const agentRoutes = require("./routes/agentRoutes");
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/agent", agentRoutes);
 
 const clientDist = path.join(__dirname, "..", "client", "dist");
 if (require("fs").existsSync(clientDist)) {
@@ -24,8 +26,14 @@ if (require("fs").existsSync(clientDist)) {
 }
 
 const PORT = process.env.PORT || 5000;
+const mongoUri = process.env.MONGO_URI;
 
-mongoose.connect(process.env.MONGO_URI)
+if (!mongoUri) {
+  console.error("Missing required environment variable: MONGO_URI");
+  process.exit(1);
+}
+
+mongoose.connect(mongoUri)
   .then(() => {
     console.log("MongoDB Connected");
     app.get("/", (req, res) => {
